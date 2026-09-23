@@ -1,21 +1,25 @@
-﻿// main.cpp
+// main.cpp
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <gl/glut.h>
+#include "GLPlatform.h"
 #include <iostream>
 #include "Scene.h"
-#include <string> 
+#include <string>
 #include <fstream>
 #include <sstream>
-#include <stdio.h> 
+#include "Score.h"
+#include <ctime>
+#include <cstdlib>
+#include <memory>
+#include <stdio.h>
 
 using namespace std;
 using CrossGame::Scene;
 
-Scene* scene; // вказівник на клас Scene
+std::unique_ptr<Scene> scene; // вказівник на клас Scene
 
 
-unsigned short num = 1;
+std::uint64_t num = 1;
 void setScore();
 
 void on_paint()
@@ -53,8 +57,7 @@ void on_keyboard(unsigned char key, int x, int y)
 {
     // обробка подій від клавіатури:
     if (key == 27) {
-        setScore();
-        exit(0); 
+        exit(0);
     }
 
     scene->on_keyboard(key, x, y);
@@ -70,35 +73,9 @@ void on_timer(int value)
 
 void getScore() {
 
-    string str, dateStr, pl_1, pl_2;
+    ifstream file("scoring.txt");
+    num = CrossGame::readScores(file, cout);
 
-    ifstream file("scoring.txt");//читання та виведення тексту у консоль
-
-    if (file.good()) {
-
-        while (getline(file, str)) {
-
-            stringstream ss(str);
-
-            getline(ss, str, ';');
-            num = stoi(str);
-
-            getline(ss, str, ';');
-            dateStr = str;
-
-            getline(ss, str, ';');
-            pl_1 = str;
-
-            getline(ss, str, ';');
-            pl_2 = str;
-
-            cout << num << "\t" << dateStr << "\t " << pl_1 << "\t" << pl_2 << endl;
-
-            num++;
-        }
-    }
-
-    file.close();
 }
 
 
@@ -111,6 +88,7 @@ string getDateStr()
     time(&curtime);
     loctime = localtime(&curtime);
 
+    if (!loctime) return "unknown";
     strftime(buffer, 12, "%d.%m.%Y", loctime);
     return buffer;
 }
@@ -118,17 +96,19 @@ string getDateStr()
 
 void setScore()
 {
+    if (!scene || scene->page < 2) return;
     string dateStr = getDateStr();
 
     ofstream of("scoring.txt", ios::app);// запис рядку у кінець файлу
 
     if (of.is_open())
     {
-        of << num << ";" << dateStr << ";" << scene->player1.name << "=" << scene->player1.victory << ";" 
+        of << num << ";" << dateStr << ";" << scene->player1.name << "=" << scene->player1.victory << ";"
                         << scene->player2.name << "=" << scene->player2.victory << endl;
     }
 
-    of.close();
+    of.flush();
+    if (!of) cerr << "Could not save scores to scoring.txt\n";
 }
 
 
@@ -136,7 +116,8 @@ int main(int argc, char* argv[])
 {
 
     glutInit(&argc, argv);         // ініціалізуємо GLUT
-    scene = new Scene(0.4, 0.4);   // створюємо об'єкт "сцена"
+    scene = std::make_unique<Scene>(0.4f, 0.4f);
+    std::atexit(setScore);   // створюємо об'єкт "сцена"
     glutInitWindowSize(800, 600);  // встановлюємо розміри вікна
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);// ініціалізуємо режими відображення
     glutCreateWindow("Tic-tac-toe");     // створюємо вікно
@@ -149,6 +130,7 @@ int main(int argc, char* argv[])
     glutTimerFunc(25, on_timer, 0);// кожні 25 мс викликається ця функція
     getScore();
     glutMainLoop();                // стартуємо основний цикл обробки подій
-    delete scene;                  // видаляємо об'єкт "сцена"
+    setScore();
+    scene.reset();                  // видаляємо об'єкт "сцена"
     return(0);
 }

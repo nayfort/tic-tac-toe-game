@@ -4,20 +4,20 @@
 
 namespace CrossGame
 {
-    // Клас для представлення абстрактної фігури
+    // РљР»Р°СЃ РґР»СЏ РїСЂРµРґСЃС‚Р°РІР»РµРЅРЅСЏ Р°Р±СЃС‚СЂР°РєС‚РЅРѕС— С„С–РіСѓСЂРё
     class Shape
     {
     private:
-        float xCenter, yCenter, zCenter;          // координати центру
-        float xSize, ySize, zSize;                // розміри
-        float* diffColor, * ambiColor, * specColor; // кольори
-    public: int type;                                   //Змінна для того щоб розподілити об'єкти на сцені по типам і залежно від типу приймати рішення що з ними робити
+        float xCenter, yCenter, zCenter;          // РєРѕРѕСЂРґРёРЅР°С‚Рё С†РµРЅС‚СЂСѓ
+        float xSize, ySize, zSize;                // СЂРѕР·РјС–СЂРё
+        float* diffColor, * ambiColor, * specColor; // РєРѕР»СЊРѕСЂРё
+    public: int type;                                   //Р—РјС–РЅРЅР° РґР»СЏ С‚РѕРіРѕ С‰РѕР± СЂРѕР·РїРѕРґС–Р»РёС‚Рё РѕР±'С”РєС‚Рё РЅР° СЃС†РµРЅС– РїРѕ С‚РёРїР°Рј С– Р·Р°Р»РµР¶РЅРѕ РІС–Рґ С‚РёРїСѓ РїСЂРёР№РјР°С‚Рё СЂС–С€РµРЅРЅСЏ С‰Рѕ Р· РЅРёРјРё СЂРѕР±РёС‚Рё
     public:
         Shape(float xCenter, float yCenter, float zCenter,
             float xSize, float ySize, float zSize,
             float* diffColor, float* ambiColor, float* specColor);
         virtual ~Shape() { }
-        // Функції доступу:
+        // Р¤СѓРЅРєС†С–С— РґРѕСЃС‚СѓРїСѓ:
         float  getXCenter() const { return xCenter; }
         float  getYCenter() const { return yCenter; }
         float  getZCenter() const { return zCenter; }
@@ -39,7 +39,7 @@ namespace CrossGame
         void   setAmbiColor(float* ambiColor) { this->ambiColor = ambiColor; }
         void   setSpecColor(float* specColor) { this->specColor = specColor; }
         void   setColors(float* diffColor, float* ambiColor, float* specColor);
-        virtual void draw() = 0; // ця функція повинна бути перекрита у похідних класах
+        virtual void draw() = 0; // С†СЏ С„СѓРЅРєС†С–СЏ РїРѕРІРёРЅРЅР° Р±СѓС‚Рё РїРµСЂРµРєСЂРёС‚Р° Сѓ РїРѕС…С–РґРЅРёС… РєР»Р°СЃР°С…
     };
 
 }

@@ -1,6 +1,6 @@
 // Scene.cpp
 #define _CRT_SECURE_NO_WARNINGS
-#include <gl/glut.h>
+#include "GLPlatform.h"
 #include <stdio.h>
 #include "Scene.h"
 #include "utils.h"
@@ -11,32 +11,32 @@ namespace CrossGame
 {
     using namespace GraphUtils;
 
-    
+
     Scene::Scene(float xStep, float zStep)
     {
         this->xStep = xStep;
         this->zStep = zStep;
-        // Здійснюємо ініціалізацію параметрів перед першою грою:
+        // Р—РґС–Р№СЃРЅСЋС”РјРѕ С–РЅС–С†С–Р°Р»С–Р·Р°С†С–СЋ РїР°СЂР°РјРµС‚СЂС–РІ РїРµСЂРµРґ РїРµСЂС€РѕСЋ РіСЂРѕСЋ:
         initialize();
     }
 
     Scene::~Scene()
     {
-        // Видаляємо всі фігури:
-        for (int i = 0; i < shapes.size(); i++)
+        // Р’РёРґР°Р»СЏС”РјРѕ РІСЃС– С„С–РіСѓСЂРё:
+        for (std::size_t i = 0; i < shapes.size(); i++)
         {
             delete shapes[i];
         }
     }
 
 
-    // Перерахування індексу масиву fields в координату x
+    // РџРµСЂРµСЂР°С…СѓРІР°РЅРЅСЏ С–РЅРґРµРєСЃСѓ РјР°СЃРёРІСѓ fields РІ РєРѕРѕСЂРґРёРЅР°С‚Сѓ x
     float Scene::allocX(int i)
     {
         return  xStep * i - (N - 1) * xStep / 2;
     }
 
-    // Перерахування індексу масиву fields в координату z
+    // РџРµСЂРµСЂР°С…СѓРІР°РЅРЅСЏ С–РЅРґРµРєСЃСѓ РјР°СЃРёРІСѓ fields РІ РєРѕРѕСЂРґРёРЅР°С‚Сѓ z
     float Scene::allocZ(int i)
     {
         return  zStep * i - (M - 1) * zStep / 2;
@@ -44,31 +44,34 @@ namespace CrossGame
 
 
 
-    // Ініціалізація даних (виконується спочатку, а потім з кожним оновленням гри):
+    // Р†РЅС–С†С–Р°Р»С–Р·Р°С†С–СЏ РґР°РЅРёС… (РІРёРєРѕРЅСѓС”С‚СЊСЃСЏ СЃРїРѕС‡Р°С‚РєСѓ, Р° РїРѕС‚С–Рј Р· РєРѕР¶РЅРёРј РѕРЅРѕРІР»РµРЅРЅСЏРј РіСЂРё):
     void Scene::initialize()
     {
-        stalemate = false; //початковий стан
-        Turn = true; //Ходять спочатку хрестики
+        stalemate = false; //РїРѕС‡Р°С‚РєРѕРІРёР№ СЃС‚Р°РЅ
+        Turn = true; //РҐРѕРґСЏС‚СЊ СЃРїРѕС‡Р°С‚РєСѓ С…СЂРµСЃС‚РёРєРё
+        for (auto* shape : shapes) delete shape;
         shapes.clear();
+        button = -1;
+        startedAt = std::chrono::steady_clock::now();
 
         float* col1D = diffLightBlue;
         float* col1A = ambiLightBlue;
         float* col1S = specLightBlue;
 
 
-        // Додаємо дошку  
-        shapes.push_back(new Board(0.0f, -0.0345f, 0.0f, N * xStep, 0.07f, M * xStep, diffOrange, ambiOrange, ambiOrange));
+        // Р”РѕРґР°С”РјРѕ РґРѕС€РєСѓ
+        shapes.push_back(new Board(0.0f, -0.0345f, 0.0f, N * xStep, 0.07f, M * zStep, diffOrange, ambiOrange, specOrange));
 
 
-        //Формуємо лінії
-        shapes.push_back(new Board(0.2f, 0.04f, 0.0f, 0.05f, 0.07f, M * xStep, col1D, col1A, col1S));
-        shapes.push_back(new Board(-0.2f, 0.04f, 0.0f, 0.05f, 0.07f, M * xStep, col1D, col1A, col1S));
+        //Р¤РѕСЂРјСѓС”РјРѕ Р»С–РЅС–С—
+        shapes.push_back(new Board(xStep / 2, 0.04f, 0.0f, 0.05f, 0.07f, M * zStep, col1D, col1A, col1S));
+        shapes.push_back(new Board(-xStep / 2, 0.04f, 0.0f, 0.05f, 0.07f, M * zStep, col1D, col1A, col1S));
 
-        shapes.push_back(new Board(0.0f, 0.03f, 0.2f, N * xStep, 0.07f, 0.05f, col1D, col1A, col1S));
-        shapes.push_back(new Board(0.0f, 0.03f, -0.2f, N * xStep, 0.07f, 0.05f, col1D, col1A, col1S));
+        shapes.push_back(new Board(0.0f, 0.03f, zStep / 2, N * xStep, 0.07f, 0.05f, col1D, col1A, col1S));
+        shapes.push_back(new Board(0.0f, 0.03f, -zStep / 2, N * xStep, 0.07f, 0.05f, col1D, col1A, col1S));
 
 
-        
+
 
         distZ = -2;
         angleX = -10;
@@ -78,7 +81,7 @@ namespace CrossGame
 
     }
 
-    // Пошук клітинки, найблищої до позиції курсору миші:
+    // РџРѕС€СѓРє РєР»С–С‚РёРЅРєРё, РЅР°Р№Р±Р»РёС‰РѕС— РґРѕ РїРѕР·РёС†С–С— РєСѓСЂСЃРѕСЂСѓ РјРёС€С–:
     bool Scene::findNearest(int x, int y, int& x1, int& z1)
     {
         int viewport[4];
@@ -91,26 +94,26 @@ namespace CrossGame
             for (int j = 0; j < N; j++)
             {
 
-                // Світові x, y, z поточної клітинки:
+                // РЎРІС–С‚РѕРІС– x, y, z РїРѕС‚РѕС‡РЅРѕС— РєР»С–С‚РёРЅРєРё:
                 double wx = allocX(j);
                 double wy = 0.1;
                 double wz = allocZ(i);
 
-                // Заповнюємо масив viewport поточною областю перегляду:
+                // Р—Р°РїРѕРІРЅСЋС”РјРѕ РјР°СЃРёРІ viewport РїРѕС‚РѕС‡РЅРѕСЋ РѕР±Р»Р°СЃС‚СЋ РїРµСЂРµРіР»СЏРґСѓ:
                 glGetIntegerv(GL_VIEWPORT, viewport);
 
-                // Заповнюємо масиви поточними матрицями:
+                // Р—Р°РїРѕРІРЅСЋС”РјРѕ РјР°СЃРёРІРё РїРѕС‚РѕС‡РЅРёРјРё РјР°С‚СЂРёС†СЏРјРё:
                 glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
                 glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 
-                // Світові x, y, z координати, що обертаються:
+                // РЎРІС–С‚РѕРІС– x, y, z РєРѕРѕСЂРґРёРЅР°С‚Рё, С‰Рѕ РѕР±РµСЂС‚Р°СЋС‚СЊСЃСЏ:
                 double dx, dy, dz;
 
-                // Отримуємо координати точки, на яку спроектовано клітинка:
+                // РћС‚СЂРёРјСѓС”РјРѕ РєРѕРѕСЂРґРёРЅР°С‚Рё С‚РѕС‡РєРё, РЅР° СЏРєСѓ СЃРїСЂРѕРµРєС‚РѕРІР°РЅРѕ РєР»С–С‚РёРЅРєР°:
                 gluProject(wx, wy, wz, mvMatrix, projMatrix, viewport, &dx, &dy, &dz);
-                dy = viewport[3] - dy - 1; // dy необхідно перерахувати
-                double d = (x - dx) * (x - dx) + (y - dy) * (y - dy); // квадрат відстані
-                if (d < minDist) // знайшли ближню клітинку
+                dy = viewport[3] - dy - 1; // dy РЅРµРѕР±С…С–РґРЅРѕ РїРµСЂРµСЂР°С…СѓРІР°С‚Рё
+                double d = (x - dx) * (x - dx) + (y - dy) * (y - dy); // РєРІР°РґСЂР°С‚ РІС–РґСЃС‚Р°РЅС–
+                if (d < minDist) // Р·РЅР°Р№С€Р»Рё Р±Р»РёР¶РЅСЋ РєР»С–С‚РёРЅРєСѓ
                 {
                     minDist = d;
                     iMin = i;
@@ -118,7 +121,7 @@ namespace CrossGame
                 }
             }
         }
-        if (minDist < 1000) // знайшли найближчу клітинку
+        if (minDist < 1000) // Р·РЅР°Р№С€Р»Рё РЅР°Р№Р±Р»РёР¶С‡Сѓ РєР»С–С‚РёРЅРєСѓ
         {
             x1 = jMin;
             z1 = iMin;
@@ -130,52 +133,52 @@ namespace CrossGame
         }
     }
 
-    // Оброблювач події, пов'язаної з перемалюванням вікна
+    // РћР±СЂРѕР±Р»СЋРІР°С‡ РїРѕРґС–С—, РїРѕРІ'СЏР·Р°РЅРѕС— Р· РїРµСЂРµРјР°Р»СЋРІР°РЅРЅСЏРј РІС–РєРЅР°
     void Scene::on_paint()
     {
-        char text[128]; // Масив символів, 
-        // Заповнення масиву символів відповідно до стану гри:
+        char text[128]; // РњР°СЃРёРІ СЃРёРјРІРѕР»С–РІ,
+        // Р—Р°РїРѕРІРЅРµРЅРЅСЏ РјР°СЃРёРІСѓ СЃРёРјРІРѕР»С–РІ РІС–РґРїРѕРІС–РґРЅРѕ РґРѕ СЃС‚Р°РЅСѓ РіСЂРё:
         if (finish)
         {
             std::string win = "";
 
-            if (!stalemate) // не Нічия
+            if (!stalemate) // РЅРµ РќС–С‡РёСЏ
             {
                 if (Turn) win = player1.name; else win = player2.name;
-                sprintf(text, "Game over. Time: %d sec. player: %s won   F2 - Restart game   Esc - Exit", time, win.c_str());
+                snprintf(text, sizeof(text), "Game over. Time: %d sec. player: %s won   F2 - Restart game   Esc - Exit", time, win.c_str());
             }
-            else //Нічия
-                sprintf(text, "Game over. Time: %d sec.  Draw   F2 - Restart game   Esc - Exit", time);
+            else //РќС–С‡РёСЏ
+                snprintf(text, sizeof(text), "Game over. Time: %d sec.  Draw   F2 - Restart game   Esc - Exit", time);
 
 
         }
         else
         {
-            sprintf(text, "F2 - Restart game   Esc - Exit              Time: %d sec.", time);
+            snprintf(text, sizeof(text), "F2 - Restart game   Esc - Exit              Time: %d sec.", time);
         }
-        // Встановлюємо область перегляду таку, щоб вона вміщувала все вікно:
+        // Р’СЃС‚Р°РЅРѕРІР»СЋС”РјРѕ РѕР±Р»Р°СЃС‚СЊ РїРµСЂРµРіР»СЏРґСѓ С‚Р°РєСѓ, С‰РѕР± РІРѕРЅР° РІРјС–С‰СѓРІР°Р»Р° РІСЃРµ РІС–РєРЅРѕ:
         glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
-        // Ініціалізуємо параметри матеріалів і джерела світла:
-        float lightAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // колір фонового освітлення 
-        float lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // колір дифузного освітлення 
-        float lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };// колір дзеркального відображення
-        float lightPosition[] = { 1.0f, 1.0f, 1.0f, 0.0f };// розташування джерела світла
+        // Р†РЅС–С†С–Р°Р»С–Р·СѓС”РјРѕ РїР°СЂР°РјРµС‚СЂРё РјР°С‚РµСЂС–Р°Р»С–РІ С– РґР¶РµСЂРµР»Р° СЃРІС–С‚Р»Р°:
+        float lightAmbient[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // РєРѕР»С–СЂ С„РѕРЅРѕРІРѕРіРѕ РѕСЃРІС–С‚Р»РµРЅРЅСЏ
+        float lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // РєРѕР»С–СЂ РґРёС„СѓР·РЅРѕРіРѕ РѕСЃРІС–С‚Р»РµРЅРЅСЏ
+        float lightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };// РєРѕР»С–СЂ РґР·РµСЂРєР°Р»СЊРЅРѕРіРѕ РІС–РґРѕР±СЂР°Р¶РµРЅРЅСЏ
+        float lightPosition[] = { 1.0f, 1.0f, 1.0f, 0.0f };// СЂРѕР·С‚Р°С€СѓРІР°РЅРЅСЏ РґР¶РµСЂРµР»Р° СЃРІС–С‚Р»Р°
 
-        // Встановлюємо параметри джерела світла:
+        // Р’СЃС‚Р°РЅРѕРІР»СЋС”РјРѕ РїР°СЂР°РјРµС‚СЂРё РґР¶РµСЂРµР»Р° СЃРІС–С‚Р»Р°:
         glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
         glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
         glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-        // Визначаємо блакитний колір для очищення:
+        // Р’РёР·РЅР°С‡Р°С”РјРѕ Р±Р»Р°РєРёС‚РЅРёР№ РєРѕР»С–СЂ РґР»СЏ РѕС‡РёС‰РµРЅРЅСЏ:
 
-        if (stalemate) //Нічия
+        if (stalemate) //РќС–С‡РёСЏ
         {
             glClearColor((GLclampf)0.1, (GLclampf)0.1, (GLclampf)0.1, (GLclampf)0);
         }
         else
-            if (finish) // Гру завершено і Хтось переміг
+            if (finish) // Р“СЂСѓ Р·Р°РІРµСЂС€РµРЅРѕ С– РҐС‚РѕСЃСЊ РїРµСЂРµРјС–Рі
             {
                 glClearColor((GLclampf)0.1, (GLclampf)0.1, (GLclampf)0.3, (GLclampf)0);
             }
@@ -184,26 +187,27 @@ namespace CrossGame
                 glClearColor((GLclampf)0.0, (GLclampf)0.0, (GLclampf)0.0, (GLclampf)0);
             }
 
-        // Очищуємо буфери:
+        // РћС‡РёС‰СѓС”РјРѕ Р±СѓС„РµСЂРё:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        // Для відображення тексту, краще використовувати ортографічну проекцію:
+        // Р”Р»СЏ РІС–РґРѕР±СЂР°Р¶РµРЅРЅСЏ С‚РµРєСЃС‚Сѓ, РєСЂР°С‰Рµ РІРёРєРѕСЂРёСЃС‚РѕРІСѓРІР°С‚Рё РѕСЂС‚РѕРіСЂР°С„С–С‡РЅСѓ РїСЂРѕРµРєС†С–СЋ:
         glOrtho(0, width, 0, height, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glColor3f(1, 1, 0); // жовтий текст
+        glColor3f(1, 1, 0); // Р¶РѕРІС‚РёР№ С‚РµРєСЃС‚
         drawString(GLUT_BITMAP_TIMES_ROMAN_24, text, 10, 10);
 
 
 
-        //Блок виведення імен і статистики поряд
+        //Р‘Р»РѕРє РІРёРІРµРґРµРЅРЅСЏ С–РјРµРЅ С– СЃС‚Р°С‚РёСЃС‚РёРєРё РїРѕСЂСЏРґ
         char Plt1[256];
         char Plt2[256];
-        sprintf(Plt1, "%s X: %d", player1.name.c_str(), player1.victory);
-        sprintf(Plt2, "%s O: %d", player2.name.c_str(), player2.victory);
+        snprintf(Plt1, sizeof(Plt1), "%s X: %d", player1.name.c_str(), player1.victory);
+        snprintf(Plt2, sizeof(Plt2), "%s O: %d", player2.name.c_str(), player2.victory);
         glColor3f(1, 0.7, 0.9);
         drawString(GLUT_BITMAP_TIMES_ROMAN_24, Plt1, 10, height - 30);
         glColor3f(0.7, 0.5, 1);
@@ -211,71 +215,71 @@ namespace CrossGame
 
         glPopMatrix();
 
-        // Включаємо режим роботи з матрицею проекцій:
+        // Р’РєР»СЋС‡Р°С”РјРѕ СЂРµР¶РёРј СЂРѕР±РѕС‚Рё Р· РјР°С‚СЂРёС†РµСЋ РїСЂРѕРµРєС†С–Р№:
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        // Задаємо усічений конус видимості в лівосторонній системі координат, 
-        // 60 - кут видимості в градусах по осі у,
-        // width/height - кут видимості уздовж осі x,
-        // 1 и 100 - відстань від спостерігача до площин відсікання по глибині:
+        // Р—Р°РґР°С”РјРѕ СѓСЃС–С‡РµРЅРёР№ РєРѕРЅСѓСЃ РІРёРґРёРјРѕСЃС‚С– РІ Р»С–РІРѕСЃС‚РѕСЂРѕРЅРЅС–Р№ СЃРёСЃС‚РµРјС– РєРѕРѕСЂРґРёРЅР°С‚,
+        // 60 - РєСѓС‚ РІРёРґРёРјРѕСЃС‚С– РІ РіСЂР°РґСѓСЃР°С… РїРѕ РѕСЃС– Сѓ,
+        // width/height - РєСѓС‚ РІРёРґРёРјРѕСЃС‚С– СѓР·РґРѕРІР¶ РѕСЃС– x,
+        // 1 Рё 100 - РІС–РґСЃС‚Р°РЅСЊ РІС–Рґ СЃРїРѕСЃС‚РµСЂС–РіР°С‡Р° РґРѕ РїР»РѕС‰РёРЅ РІС–РґСЃС–РєР°РЅРЅСЏ РїРѕ РіР»РёР±РёРЅС–:
         gluPerspective(60, width / height, 1, 100);
 
-        // Включаємо режим роботи з видовою матрицею:
+        // Р’РєР»СЋС‡Р°С”РјРѕ СЂРµР¶РёРј СЂРѕР±РѕС‚Рё Р· РІРёРґРѕРІРѕСЋ РјР°С‚СЂРёС†РµСЋ:
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glTranslatef(0, 0, distZ);	// камера з початку координат зсувається на distZ, 
+        glTranslatef(0, 0, distZ);	// РєР°РјРµСЂР° Р· РїРѕС‡Р°С‚РєСѓ РєРѕРѕСЂРґРёРЅР°С‚ Р·СЃСѓРІР°С”С‚СЊСЃСЏ РЅР° distZ,
 
-        glRotatef(angleX, 0.0f, 1.0f, 0.0f);  // потім обертається по осі Oy
-        glRotatef(angleY, 1.0f, 0.0f, 0.0f);  // потім обертається по осі Ox
-        glEnable(GL_DEPTH_TEST);	// включаємо буфер глибини (для відсікання невидимих частин зображення)
+        glRotatef(angleX, 0.0f, 1.0f, 0.0f);  // РїРѕС‚С–Рј РѕР±РµСЂС‚Р°С”С‚СЊСЃСЏ РїРѕ РѕСЃС– Oy
+        glRotatef(angleY, 1.0f, 0.0f, 0.0f);  // РїРѕС‚С–Рј РѕР±РµСЂС‚Р°С”С‚СЊСЃСЏ РїРѕ РѕСЃС– Ox
+        glEnable(GL_DEPTH_TEST);	// РІРєР»СЋС‡Р°С”РјРѕ Р±СѓС„РµСЂ РіР»РёР±РёРЅРё (РґР»СЏ РІС–РґСЃС–РєР°РЅРЅСЏ РЅРµРІРёРґРёРјРёС… С‡Р°СЃС‚РёРЅ Р·РѕР±СЂР°Р¶РµРЅРЅСЏ)
 
-        // Включаємо режим для установки освітлення:
+        // Р’РєР»СЋС‡Р°С”РјРѕ СЂРµР¶РёРј РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РѕСЃРІС–С‚Р»РµРЅРЅСЏ:
         glEnable(GL_LIGHTING);
 
-        // Додаємо джерело світла "0 (їх може бути до 8), зараз воно світить з "очей":
+        // Р”РѕРґР°С”РјРѕ РґР¶РµСЂРµР»Рѕ СЃРІС–С‚Р»Р° "0 (С—С… РјРѕР¶Рµ Р±СѓС‚Рё РґРѕ 8), Р·Р°СЂР°Р· РІРѕРЅРѕ СЃРІС–С‚РёС‚СЊ Р· "РѕС‡РµР№":
         glEnable(GL_LIGHT0);
 
-        // Малюємо усі фігури:
-        for (int i = 0; i < shapes.size(); i++)
+        // РњР°Р»СЋС”РјРѕ СѓСЃС– С„С–РіСѓСЂРё:
+        for (std::size_t i = 0; i < shapes.size(); i++)
         {
             shapes[i]->draw();
         }
 
-        // Вимикаємо все, що включили:
+        // Р’РёРјРёРєР°С”РјРѕ РІСЃРµ, С‰Рѕ РІРєР»СЋС‡РёР»Рё:
         glDisable(GL_LIGHT0);
         glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
 
-        if (page < 2) //Опрацьовувати якщо номер сторінки менше двух
+        if (page < 2) //РћРїСЂР°С†СЊРѕРІСѓРІР°С‚Рё СЏРєС‰Рѕ РЅРѕРјРµСЂ СЃС‚РѕСЂС–РЅРєРё РјРµРЅС€Рµ РґРІСѓС…
         {
-            //Переносимо виведення тексту поверх обєктів.
+            //РџРµСЂРµРЅРѕСЃРёРјРѕ РІРёРІРµРґРµРЅРЅСЏ С‚РµРєСЃС‚Сѓ РїРѕРІРµСЂС… РѕР±С”РєС‚С–РІ.
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
 
-            // Для відображення тексту, краще використовувати ортографічну проекцію:
+            // Р”Р»СЏ РІС–РґРѕР±СЂР°Р¶РµРЅРЅСЏ С‚РµРєСЃС‚Сѓ, РєСЂР°С‰Рµ РІРёРєРѕСЂРёСЃС‚РѕРІСѓРІР°С‚Рё РѕСЂС‚РѕРіСЂР°С„С–С‡РЅСѓ РїСЂРѕРµРєС†С–СЋ:
             glOrtho(0, 1, 0, 1, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-            glColor3f(1, 1, 0); // жовтий текст
+            glColor3f(1, 1, 0); // Р¶РѕРІС‚РёР№ С‚РµРєСЃС‚
 
 
-            if (page == 0) //Сторінка 0
+            if (page == 0) //РЎС‚РѕСЂС–РЅРєР° 0
             {
-                char text1[128]; // Масив символів,
-                // Заповнення масиву символів відповідно до стану гри:
-                sprintf(text1, "Enter a name Player 1, (only EN) Next : Press enter");
+                char text1[128]; // РњР°СЃРёРІ СЃРёРјРІРѕР»С–РІ,
+                // Р—Р°РїРѕРІРЅРµРЅРЅСЏ РјР°СЃРёРІСѓ СЃРёРјРІРѕР»С–РІ РІС–РґРїРѕРІС–РґРЅРѕ РґРѕ СЃС‚Р°РЅСѓ РіСЂРё:
+                snprintf(text1, sizeof(text1), "Enter a name Player 1, (only EN) Next : Press enter");
                 drawString(GLUT_BITMAP_TIMES_ROMAN_24, text1, 0.01, 0.8f);
                 drawString(GLUT_BITMAP_TIMES_ROMAN_24, player1.name.c_str(), 0.01, 0.7f);
             }
 
 
 
-            if (page == 1) //Сторінка 1
+            if (page == 1) //РЎС‚РѕСЂС–РЅРєР° 1
             {
-                char text1[128]; // Масив символів,
-                // Заповнення масиву символів відповідно до стану гри:
-                sprintf(text1, "Enter a name Player 2, (only EN) Next : Press enter");
+                char text1[128]; // РњР°СЃРёРІ СЃРёРјРІРѕР»С–РІ,
+                // Р—Р°РїРѕРІРЅРµРЅРЅСЏ РјР°СЃРёРІСѓ СЃРёРјРІРѕР»С–РІ РІС–РґРїРѕРІС–РґРЅРѕ РґРѕ СЃС‚Р°РЅСѓ РіСЂРё:
+                snprintf(text1, sizeof(text1), "Enter a name Player 2, (only EN) Next : Press enter");
                 drawString(GLUT_BITMAP_TIMES_ROMAN_24, text1, 0.01, 0.8f);
                 drawString(GLUT_BITMAP_TIMES_ROMAN_24, player2.name.c_str(), 0.01, 0.7f);
             }
@@ -283,32 +287,32 @@ namespace CrossGame
 
 
         glFlush();
-        // показуємо вікно:
-        glutSwapBuffers(); // перемикання буферів
+        // РїРѕРєР°Р·СѓС”РјРѕ РІС–РєРЅРѕ:
+        glutSwapBuffers(); // РїРµСЂРµРјРёРєР°РЅРЅСЏ Р±СѓС„РµСЂС–РІ
     }
 
-    // Оброблювач події, пов'язаної зі зміною розмірів вікна 
+    // РћР±СЂРѕР±Р»СЋРІР°С‡ РїРѕРґС–С—, РїРѕРІ'СЏР·Р°РЅРѕС— Р·С– Р·РјС–РЅРѕСЋ СЂРѕР·РјС–СЂС–РІ РІС–РєРЅР°
     void Scene::on_size(int width, int height)
     {
-        this->width = width;
+        this->width = width > 0 ? width : 1;
         if (height == 0)
             height = 1;
         this->height = height;
     }
 
 
-    //Функція для отримання типу ігрового елемента хрестика чи нулика або їх відсутності
+    //Р¤СѓРЅРєС†С–СЏ РґР»СЏ РѕС‚СЂРёРјР°РЅРЅСЏ С‚РёРїСѓ С–РіСЂРѕРІРѕРіРѕ РµР»РµРјРµРЅС‚Р° С…СЂРµСЃС‚РёРєР° С‡Рё РЅСѓР»РёРєР° Р°Р±Рѕ С—С… РІС–РґСЃСѓС‚РЅРѕСЃС‚С–
     int Scene::GetType(int x, int y)
     {
 
         float Xob = allocX(x);
-        float Yob = allocX(y);
-        for (int i = 0; i < shapes.size(); i++) //Пройтись по всім обєктам
+        float Yob = allocZ(y);
+        for (std::size_t i = 0; i < shapes.size(); i++) //РџСЂРѕР№С‚РёСЃСЊ РїРѕ РІСЃС–Рј РѕР±С”РєС‚Р°Рј
         {
-            if (shapes[i]->type == 1 || shapes[i]->type == 2) //Вибрати тільки хрестики і нулики
+            if (shapes[i]->type == 1 || shapes[i]->type == 2) //Р’РёР±СЂР°С‚Рё С‚С–Р»СЊРєРё С…СЂРµСЃС‚РёРєРё С– РЅСѓР»РёРєРё
             {
 
-                if (shapes[i]->getXCenter() == Xob && shapes[i]->getZCenter() == Yob) //Якщо знайдено об'єкт в заданих координатах то повертаємо його тип
+                if (shapes[i]->getXCenter() == Xob && shapes[i]->getZCenter() == Yob) //РЇРєС‰Рѕ Р·РЅР°Р№РґРµРЅРѕ РѕР±'С”РєС‚ РІ Р·Р°РґР°РЅРёС… РєРѕРѕСЂРґРёРЅР°С‚Р°С… С‚Рѕ РїРѕРІРµСЂС‚Р°С”РјРѕ Р№РѕРіРѕ С‚РёРї
                 {
 
                     return shapes[i]->type;
@@ -320,38 +324,38 @@ namespace CrossGame
         return 0;
     }
 
-    //Перевірка умов на перемогу по типу гравця
+    //РџРµСЂРµРІС–СЂРєР° СѓРјРѕРІ РЅР° РїРµСЂРµРјРѕРіСѓ РїРѕ С‚РёРїСѓ РіСЂР°РІС†СЏ
     bool Scene::TestVictory(int t)
     {
-        //Умова по горизонталі
+        //РЈРјРѕРІР° РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»С–
         for (int i = 0; i < 3; i++)
             if (GetType(0, i) == t && GetType(1, i) == t && GetType(2, i) == t) return true;
 
-        //Умова по вертикалі
+        //РЈРјРѕРІР° РїРѕ РІРµСЂС‚РёРєР°Р»С–
         for (int i = 0; i < 3; i++)
             if (GetType(i, 0) == t && GetType(i, 1) == t && GetType(i, 2) == t) return true;
 
-        //Умова навхрест зліва на право
+        //РЈРјРѕРІР° РЅР°РІС…СЂРµСЃС‚ Р·Р»С–РІР° РЅР° РїСЂР°РІРѕ
         if (GetType(0, 0) == t && GetType(1, 1) == t && GetType(2, 2) == t) return true;
 
-        //Умов навхрест з права на ліво
+        //РЈРјРѕРІ РЅР°РІС…СЂРµСЃС‚ Р· РїСЂР°РІР° РЅР° Р»С–РІРѕ
         if (GetType(2, 0) == t && GetType(1, 1) == t && GetType(0, 2) == t) return true;
 
-        //Жодна умова перемоги не виконана
+        //Р–РѕРґРЅР° СѓРјРѕРІР° РїРµСЂРµРјРѕРіРё РЅРµ РІРёРєРѕРЅР°РЅР°
         return false;
     }
 
-    //Підрахунок кількості хрестиків і нуликів.
+    //РџС–РґСЂР°С…СѓРЅРѕРє РєС–Р»СЊРєРѕСЃС‚С– С…СЂРµСЃС‚РёРєС–РІ С– РЅСѓР»РёРєС–РІ.
     int Scene::CountElement()
     {
         int count = 0;
 
-        for (int i = 0; i < shapes.size(); i++) //Пройтись по всі обєктам
+        for (std::size_t i = 0; i < shapes.size(); i++) //РџСЂРѕР№С‚РёСЃСЊ РїРѕ РІСЃС– РѕР±С”РєС‚Р°Рј
         {
-            if (shapes[i]->type == 1 || shapes[i]->type == 2) //Вибрати тільки хрестики і нулики
+            if (shapes[i]->type == 1 || shapes[i]->type == 2) //Р’РёР±СЂР°С‚Рё С‚С–Р»СЊРєРё С…СЂРµСЃС‚РёРєРё С– РЅСѓР»РёРєРё
             {
 
-                count++; //Враховуємо його
+                count++; //Р’СЂР°С…РѕРІСѓС”РјРѕ Р№РѕРіРѕ
             }
         }
 
@@ -359,70 +363,70 @@ namespace CrossGame
     }
 
 
-    // Оброблювач подій, пов'язаних з натисканням кнопок миші
+    // РћР±СЂРѕР±Р»СЋРІР°С‡ РїРѕРґС–Р№, РїРѕРІ'СЏР·Р°РЅРёС… Р· РЅР°С‚РёСЃРєР°РЅРЅСЏРј РєРЅРѕРїРѕРє РјРёС€С–
     void Scene::on_mouse(int button, int state, int x, int y)
     {
 
-        // Зберігаємо поточні координати миші:
+        // Р—Р±РµСЂС–РіР°С”РјРѕ РїРѕС‚РѕС‡РЅС– РєРѕРѕСЂРґРёРЅР°С‚Рё РјРёС€С–:
         mouseX = x;
         mouseY = y;
-        if ((state == GLUT_UP)) // кнопка віджата
+        if (state == GLUT_UP) // РєРЅРѕРїРєР° РІС–РґР¶Р°С‚Р°
         {
-            this->button = -1;  // ніяка кнопка не натиснута
+            this->button = -1;  // РЅС–СЏРєР° РєРЅРѕРїРєР° РЅРµ РЅР°С‚РёСЃРЅСѓС‚Р°
             return;
         }
-        this->button = button;  // зберігаємо інформацію про кнопки
-        if (finish)
+        this->button = button;  // Р·Р±РµСЂС–РіР°С”РјРѕ С–РЅС„РѕСЂРјР°С†С–СЋ РїСЂРѕ РєРЅРѕРїРєРё
+        if (finish || page < 2)
         {
             return;
         }
 
 
 
-        int X, Y; //Змінні для отримання результатів пошуку місця натиску
-        
+        int X, Y; //Р—РјС–РЅРЅС– РґР»СЏ РѕС‚СЂРёРјР°РЅРЅСЏ СЂРµР·СѓР»СЊС‚Р°С‚С–РІ РїРѕС€СѓРєСѓ РјС–СЃС†СЏ РЅР°С‚РёСЃРєСѓ
+
         if (button == 0 && findNearest(mouseX, mouseY, X, Y))
         {
 
             float CorectHeight = 0.02;
 
-            //Отримати координати місця куди потрібно вкласти новий об'єкт
+            //РћС‚СЂРёРјР°С‚Рё РєРѕРѕСЂРґРёРЅР°С‚Рё РјС–СЃС†СЏ РєСѓРґРё РїРѕС‚СЂС–Р±РЅРѕ РІРєР»Р°СЃС‚Рё РЅРѕРІРёР№ РѕР±'С”РєС‚
             float Xob = allocX(X);
-            float Yob = allocX(Y);
+            float Yob = allocZ(Y);
 
-            if (!(bool)GetType(X, Y)) //Якщо ми клікнули в місце де немає ще обєктів тоді будемо додавати
+            if (!(bool)GetType(X, Y)) //РЇРєС‰Рѕ РјРё РєР»С–РєРЅСѓР»Рё РІ РјС–СЃС†Рµ РґРµ РЅРµРјР°С” С‰Рµ РѕР±С”РєС‚С–РІ С‚РѕРґС– Р±СѓРґРµРјРѕ РґРѕРґР°РІР°С‚Рё
             {
                 if (Turn)
                 {
-                    shapes.push_back(new Cross(Xob, 0.00 - CorectHeight, Yob, 0.3, 0.1, 0.3, diffGreen, ambiRed, specRed));
-                    shapes[shapes.size() - 1]->type = 1; //Задаємо тип елемента
+                    shapes.push_back(new Cross(Xob, 0.00 - CorectHeight, Yob, 0.3, 0.1, 0.3, diffRed, ambiRed, specRed));
+                    shapes[shapes.size() - 1]->type = 1; //Р—Р°РґР°С”РјРѕ С‚РёРї РµР»РµРјРµРЅС‚Р°
                 }
                 else
                 {
                     shapes.push_back(new Disk(Xob, 0.05 - CorectHeight, Yob, 0.3, 0.05, 0.3, diffGreen, ambiGreen, specGreen, 0.05));
-                    shapes[shapes.size() - 1]->type = 2; //Задаємо тип елемента
+                    shapes[shapes.size() - 1]->type = 2; //Р—Р°РґР°С”РјРѕ С‚РёРї РµР»РµРјРµРЅС‚Р°
                 }
-                Turn = !Turn; //Змінюємо чергу
+                Turn = !Turn; //Р—РјС–РЅСЋС”РјРѕ С‡РµСЂРіСѓ
 
             }
 
 
-            if (TestVictory(1)) { player1.victory++;  Turn = true; finish = true; } //Перевірити чи перший гравець виграв
+            if (TestVictory(1)) { player1.victory++;  Turn = true; finish = true; } //РџРµСЂРµРІС–СЂРёС‚Рё С‡Рё РїРµСЂС€РёР№ РіСЂР°РІРµС†СЊ РІРёРіСЂР°РІ
             else
-                if (TestVictory(2)) { player2.victory++;  Turn = false;  finish = true; } //Перевірити чи другий гравець виграв
+                if (TestVictory(2)) { player2.victory++;  Turn = false;  finish = true; } //РџРµСЂРµРІС–СЂРёС‚Рё С‡Рё РґСЂСѓРіРёР№ РіСЂР°РІРµС†СЊ РІРёРіСЂР°РІ
                 else
-                    if (CountElement() >= 3 * 3) { stalemate = true;  finish = true; } //Якщо усі вільні клітинки заповнено та  ніхто не переміг то нічия
+                    if (CountElement() >= 3 * 3) { stalemate = true;  finish = true; } //РЇРєС‰Рѕ СѓСЃС– РІС–Р»СЊРЅС– РєР»С–С‚РёРЅРєРё Р·Р°РїРѕРІРЅРµРЅРѕ С‚Р°  РЅС–С…С‚Рѕ РЅРµ РїРµСЂРµРјС–Рі С‚Рѕ РЅС–С‡РёСЏ
 
         }
     }
 
-    // Оброблювач подій, пов'язаних з пересуванням миші з натисненою кнопкою
+    // РћР±СЂРѕР±Р»СЋРІР°С‡ РїРѕРґС–Р№, РїРѕРІ'СЏР·Р°РЅРёС… Р· РїРµСЂРµСЃСѓРІР°РЅРЅСЏРј РјРёС€С– Р· РЅР°С‚РёСЃРЅРµРЅРѕСЋ РєРЅРѕРїРєРѕСЋ
     void Scene::on_motion(int x, int y)
     {
         switch (button)
         {
 
-        case 2: // права кнопка - обертання сцени
+        case 2: // РїСЂР°РІР° РєРЅРѕРїРєР° - РѕР±РµСЂС‚Р°РЅРЅСЏ СЃС†РµРЅРё
             angleX += x - mouseX;
             angleY += y - mouseY;
             mouseX = x;
@@ -431,45 +435,44 @@ namespace CrossGame
         }
     }
 
-    // Оброблювач подій, пов'язаних з натисненням функціональних клавіш і стрілок 
-    void Scene::on_special(int key, int x, int y)
+    // РћР±СЂРѕР±Р»СЋРІР°С‡ РїРѕРґС–Р№, РїРѕРІ'СЏР·Р°РЅРёС… Р· РЅР°С‚РёСЃРЅРµРЅРЅСЏРј С„СѓРЅРєС†С–РѕРЅР°Р»СЊРЅРёС… РєР»Р°РІС–С€ С– СЃС‚СЂС–Р»РѕРє
+    void Scene::on_special(int key, int, int)
     {
         switch (key) {
-        case GLUT_KEY_UP:   // наближення
+        case GLUT_KEY_UP:   // РЅР°Р±Р»РёР¶РµРЅРЅСЏ
             if (distZ > -1.7)
             {
                 break;
             }
             distZ += 0.1;
             break;
-        case GLUT_KEY_DOWN: // віддалення
+        case GLUT_KEY_DOWN: // РІС–РґРґР°Р»РµРЅРЅСЏ
             distZ -= 0.1;
             break;
-        case GLUT_KEY_F2:   // нова гра
+        case GLUT_KEY_F2:   // РЅРѕРІР° РіСЂР°
             initialize();
             break;
         }
     }
 
-    //Введення з клавіатури
-    void Scene::on_keyboard(unsigned char key, int x, int y)
+    //Р’РІРµРґРµРЅРЅСЏ Р· РєР»Р°РІС–Р°С‚СѓСЂРё
+    void Scene::on_keyboard(unsigned char key, int, int)
     {
 
         if (key == 13 && (page == 0 || page == 1))
         {
 
             if (player2.name.empty() && page == 1)   {
-                MessageBox(NULL, L"Empty username 2", L"Tic-tac-toe game", MB_OK);
                 return;
             }
 
 
             if (player1.name.empty()) {
-                MessageBox(NULL, L"Empty username 1", L"Tic-tac-toe game", MB_OK);
                 return;
             }
 
             page++;
+            if (page == 2) startedAt = std::chrono::steady_clock::now();
             return;
         }
 
@@ -481,32 +484,23 @@ namespace CrossGame
         if (page == 0 || page == 1)
         {
 
-            if (key == 8) //Видаляємо символ якщо натиснуто backspace 
+            if (key == 8 || key == 127) //Р’РёРґР°Р»СЏС”РјРѕ СЃРёРјРІРѕР» СЏРєС‰Рѕ РЅР°С‚РёСЃРЅСѓС‚Рѕ backspace
             {
                 if (t->size() > 0)
                     t->erase(t->begin() + t->size() - 1);
             }
-            else
+            else if (key >= 32 && key <= 126 && key != ';' && key != '=' && t->size() < 24)
                 t->push_back(key);
         }
     }
 
 
-    int tick = 0; // лічильник, значення якого змінюється кожні 25 мс
-
-    // Оброблювач події від таймера
-    void Scene::on_timer(int value)
+    void Scene::on_timer(int)
     {
-        tick++;
-        if (tick >= 40) // нарахували наступну секунду
-        {
-            if (!finish)// секунди нарощуються, якщо гру не закінчено
-            {
-                time++;
-            }
-            tick = 0;   // скинули лічильник
-        }
-        on_paint();     // здійснюємо перемалювання вікна
+        if (page == 2 && !finish)
+            time = static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::steady_clock::now() - startedAt).count());
+        glutPostRedisplay();
     }
 
 }

@@ -1,1 +1,31 @@
-/.vs
+# Build output
+/build*/
+/cmake-build-*/
+/Debug/
+/Release/
+/x64/
+/x86/
+*.obj
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+*.ilk
+*.idb
+*.tlog/
+
+# Local IDE and OS state
+/.vs/
+/.vscode/
+/.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Local game history
+/scoring.txt

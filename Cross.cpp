@@ -1,4 +1,4 @@
-#include <gl/glut.h>
+#include "GLPlatform.h"
 #include "Cross.h"
 #include "utils.h"
 
@@ -8,51 +8,55 @@ namespace CrossGame
 
     void Cross::draw()
     {
-        // Визначення властивостей матеріалу:
+        // Р’РёР·РЅР°С‡РµРЅРЅСЏ РІР»Р°СЃС‚РёРІРѕСЃС‚РµР№ РјР°С‚РµСЂС–Р°Р»Сѓ:
         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, getAmbiColor());
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, getDiffColor());
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, getSpecColor());
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, GraphUtils::shininess);
-        // Запис поточної матриці в стек
-        // (збереження вмісту поточної матриці для подальшого використання):
+        // Р—Р°РїРёСЃ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РІ СЃС‚РµРє
+        // (Р·Р±РµСЂРµР¶РµРЅРЅСЏ РІРјС–СЃС‚Сѓ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РґР»СЏ РїРѕРґР°Р»СЊС€РѕРіРѕ РІРёРєРѕСЂРёСЃС‚Р°РЅРЅСЏ):
         glPushMatrix();
         glTranslatef(getXCenter(), getYCenter() + getYSize() / 2, getZCenter());
-        
+
         glRotatef(90, 1, 0, 0);
-        GLUquadricObj* quadricObj = gluNewQuadric();
 
-        float s = getXSize(); //Запам'ятати переданий розмір
-        float sW = s / 2; //Довжина лінії хреста
-        float sH = s / 10; //Ширина лінії хреста
-        float sG = s / 7;//Глибина
+        float s = getXSize(); //Р—Р°РїР°Рј'СЏС‚Р°С‚Рё РїРµСЂРµРґР°РЅРёР№ СЂРѕР·РјС–СЂ
+        float sW = s / 2; //Р”РѕРІР¶РёРЅР° Р»С–РЅС–С— С…СЂРµСЃС‚Р°
+        float sH = s / 10; //РЁРёСЂРёРЅР° Р»С–РЅС–С— С…СЂРµСЃС‚Р°
+        float sG = s / 7;//Р“Р»РёР±РёРЅР°
 
 
-        glRotatef(45, 0, 0, 1); //Повертаємо хрестик на 45 градусів 
+        glRotatef(45, 0, 0, 1); //РџРѕРІРµСЂС‚Р°С”РјРѕ С…СЂРµСЃС‚РёРє РЅР° 45 РіСЂР°РґСѓСЃС–РІ
 
-        for (int i = 0; i < 2; i++) // В циклі дублюємо код але з поворотом  Малюємо прямокутник з зміщенням 90 градусів що б вийшов хрестик
+        for (int i = 0; i < 2; i++) // Р’ С†РёРєР»С– РґСѓР±Р»СЋС”РјРѕ РєРѕРґ Р°Р»Рµ Р· РїРѕРІРѕСЂРѕС‚РѕРј  РњР°Р»СЋС”РјРѕ РїСЂСЏРјРѕРєСѓС‚РЅРёРє Р· Р·РјС–С‰РµРЅРЅСЏРј 90 РіСЂР°РґСѓСЃС–РІ С‰Рѕ Р± РІРёР№С€РѕРІ С…СЂРµСЃС‚РёРє
         {
             glBegin(GL_QUADS);
-            //Бічна площина 1
+            glNormal3d(0, 0, 1);
+            glVertex3d(-sW, -sG, sH);
+            glVertex3d(sW, -sG, sH);
+            glVertex3d(sW, sG, sH);
+            glVertex3d(-sW, sG, sH);
+            //Р‘С–С‡РЅР° РїР»РѕС‰РёРЅР° 1
             glNormal3d(0, 1, 0);
             glVertex3d(-sW, sG, sH);
             glVertex3d(sW, sG, sH);
             glVertex3d(sW, sG, -sH);
             glVertex3d(-sW, sG, -sH);
-            //Бічна площина 2
+            //Р‘С–С‡РЅР° РїР»РѕС‰РёРЅР° 2
             glNormal3d(0, -1, 0);
             glVertex3d(-sW, -sG, sH);
             glVertex3d(sW, -sG, sH);
             glVertex3d(sW, -sG, -sH);
             glVertex3d(-sW, -sG, -sH);
 
-            //Кришка з верху 3
+            //РљСЂРёС€РєР° Р· РІРµСЂС…Сѓ 3
             glNormal3d(0, 0, -1);
             glVertex3d(-sW, -sG, -sH);
             glVertex3d(sW, -sG, -sH);
             glVertex3d(sW, sG, -sH);
             glVertex3d(-sW, sG, -sH);
 
-            //Кришка front
+            //РљСЂРёС€РєР° front
             glNormal3d(1, 0, 0);
             glVertex3d(sW, -sG, -sH);
             glVertex3d(sW, -sG, sH);
@@ -60,18 +64,17 @@ namespace CrossGame
             glVertex3d(sW, sG, -sH);
 
 
-            //Кришка back
+            //РљСЂРёС€РєР° back
             glNormal3d(-1, 0, 0);
             glVertex3d(-sW, -sG, -sH);
             glVertex3d(-sW, -sG, sH);
             glVertex3d(-sW, sG, sH);
             glVertex3d(-sW, sG, -sH);
             glEnd();
-            glRotatef(90, 0, 0, 1); //Повернути на 90 градумів усе наступне що буде намальоване
+            glRotatef(90, 0, 0, 1); //РџРѕРІРµСЂРЅСѓС‚Рё РЅР° 90 РіСЂР°РґСѓРјС–РІ СѓСЃРµ РЅР°СЃС‚СѓРїРЅРµ С‰Рѕ Р±СѓРґРµ РЅР°РјР°Р»СЊРѕРІР°РЅРµ
         }
 
-        gluDeleteQuadric(quadricObj);
-        // Відновлення поточної матриці зі стека:
+        // Р’С–РґРЅРѕРІР»РµРЅРЅСЏ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– Р·С– СЃС‚РµРєР°:
         glPopMatrix();
     }
 

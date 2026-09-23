@@ -4,7 +4,7 @@
 
 namespace GraphUtils
 {
-    // Попередній опис масивів, які визначають кольори:
+    // РџРѕРїРµСЂРµРґРЅС–Р№ РѕРїРёСЃ РјР°СЃРёРІС–РІ, СЏРєС– РІРёР·РЅР°С‡Р°СЋС‚СЊ РєРѕР»СЊРѕСЂРё:
     extern float diffWhite[];
     extern float ambiWhite[];
     extern float specWhite[];
@@ -41,13 +41,13 @@ namespace GraphUtils
     extern float ambiViolet[];
     extern float specViolet[];
 
-    const float shininess = 64; // блиск
+    const float shininess = 64; // Р±Р»РёСЃРє
 
 
-    // Малювання паралелепіпеда
+    // РњР°Р»СЋРІР°РЅРЅСЏ РїР°СЂР°Р»РµР»РµРїС–РїРµРґР°
     void parallelepiped(float length, float width, float height);
 
-    // Відображення рядка тексту вказаним шрифтом у вказаній позиції
+    // Р’С–РґРѕР±СЂР°Р¶РµРЅРЅСЏ СЂСЏРґРєР° С‚РµРєСЃС‚Сѓ РІРєР°Р·Р°РЅРёРј С€СЂРёС„С‚РѕРј Сѓ РІРєР°Р·Р°РЅС–Р№ РїРѕР·РёС†С–С—
     void drawString(void* font, const char* text, float x, float y);
 }
 

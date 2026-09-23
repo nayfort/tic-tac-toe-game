@@ -2,11 +2,11 @@
 #ifndef Disk_h
 #define Disk_h
 
-#include "shape.h"
+#include "Shape.h"
 
 namespace CrossGame
 {
-    // Êëàñ, ÿêèé â³äïîâ³äàº çà ìàëşâàííÿ äèñêà
+    // ĞšĞ»Ğ°Ñ, ÑĞºĞ¸Ğ¹ Ğ²Ñ–Ğ´Ğ¿Ğ¾Ğ²Ñ–Ğ´Ğ°Ñ” Ğ·Ğ° Ğ¼Ğ°Ğ»ÑĞ²Ğ°Ğ½Ğ½Ñ Ğ´Ğ¸ÑĞºĞ°
     class Disk : public Shape
     {
     private:
@@ -17,7 +17,7 @@ namespace CrossGame
             float* diffColor, float* ambiColor, float* specColor,
             float innerRadius)
             : Shape(xCenter, yCenter, zCenter, xSize, ySize, zSize,
-                specColor, diffColor, ambiColor) {
+                diffColor, ambiColor, specColor) {
             this->innerRadius = innerRadius;
         }
         float getInnerRadius() const { return innerRadius; }

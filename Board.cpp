@@ -1,4 +1,4 @@
-#include <gl/glut.h>
+#include "GLPlatform.h"
 #include "Board.h"
 #include "utils.h"
 
@@ -11,12 +11,12 @@ namespace CrossGame
         glMaterialfv(GL_FRONT, GL_DIFFUSE, getDiffColor());
         glMaterialfv(GL_FRONT, GL_SPECULAR, getSpecColor());
         glMaterialf(GL_FRONT, GL_SHININESS, GraphUtils::shininess);
-        // Запис поточної матриці в стек
-        // (збереження вмісту поточної матриці для подальшого використання):
+        // Р—Р°РїРёСЃ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РІ СЃС‚РµРє
+        // (Р·Р±РµСЂРµР¶РµРЅРЅСЏ РІРјС–СЃС‚Сѓ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РґР»СЏ РїРѕРґР°Р»СЊС€РѕРіРѕ РІРёРєРѕСЂРёСЃС‚Р°РЅРЅСЏ):
         glPushMatrix();
         glTranslatef(getXCenter(), getYCenter(), getZCenter());
         GraphUtils::parallelepiped(getXSize(), getYSize(), getZSize());
-        // Відновлення поточної матриці зі стека:
+        // Р’С–РґРЅРѕРІР»РµРЅРЅСЏ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– Р·С– СЃС‚РµРєР°:
         glPopMatrix();
     }
 

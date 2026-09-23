@@ -2,11 +2,11 @@
 #ifndef Board_h
 #define Board_h
 
-#include "shape.h"
+#include "Shape.h"
 
 namespace CrossGame
 {
-    // Клас, який відповідає за малювання дошки (поля гри)
+    // РљР»Р°СЃ, СЏРєРёР№ РІС–РґРїРѕРІС–РґР°С” Р·Р° РјР°Р»СЋРІР°РЅРЅСЏ РґРѕС€РєРё (РїРѕР»СЏ РіСЂРё)
     class Board : public Shape
     {
     public:
@@ -15,7 +15,7 @@ namespace CrossGame
             float* diffColor, float* ambiColor, float* specColor)
             : Shape(xCenter, yCenter, zCenter,
                 xSize, ySize, zSize,
-                specColor, diffColor, ambiColor) { }
+                diffColor, ambiColor, specColor) { }
         virtual void draw();
     };
 

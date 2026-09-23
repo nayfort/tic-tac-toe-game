@@ -4,7 +4,7 @@
 namespace CrossGame
 {
 
-    // Конструктор:
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ:
     Shape::Shape(float xCenter, float yCenter, float zCenter,
         float xSize, float ySize, float zSize,
         float* diffColor, float* ambiColor, float* specColor)
@@ -15,7 +15,7 @@ namespace CrossGame
         setColors(diffColor, ambiColor, specColor);
     }
 
-    // Функції доступу:
+    // Р¤СѓРЅРєС†С–С— РґРѕСЃС‚СѓРїСѓ:
 
     void Shape::setCoords(float xCenter, float yCenter, float zCenter)
     {

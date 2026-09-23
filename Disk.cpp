@@ -1,4 +1,4 @@
-#include <gl/glut.h>
+#include "GLPlatform.h"
 #include "Disk.h"
 #include "utils.h"
 
@@ -7,28 +7,28 @@ namespace CrossGame
 
     void Disk::draw()
     {
-        // Визначення властивостей матеріалу:
+        // Р’РёР·РЅР°С‡РµРЅРЅСЏ РІР»Р°СЃС‚РёРІРѕСЃС‚РµР№ РјР°С‚РµСЂС–Р°Р»Сѓ:
         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, getAmbiColor());
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, getDiffColor());
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, getSpecColor());
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, GraphUtils::shininess);
-        // Запис поточної матриці в стек
-        // (збереження вмісту поточної матриці для подальшого використання):
+        // Р—Р°РїРёСЃ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РІ СЃС‚РµРє
+        // (Р·Р±РµСЂРµР¶РµРЅРЅСЏ РІРјС–СЃС‚Сѓ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– РґР»СЏ РїРѕРґР°Р»СЊС€РѕРіРѕ РІРёРєРѕСЂРёСЃС‚Р°РЅРЅСЏ):
         glPushMatrix();
         glTranslatef(getXCenter(), getYCenter() + getYSize() / 2, getZCenter());
-        // Циліндр повинен бути розташований у вертикальному напрямку:
+        // Р¦РёР»С–РЅРґСЂ РїРѕРІРёРЅРµРЅ Р±СѓС‚Рё СЂРѕР·С‚Р°С€РѕРІР°РЅРёР№ Сѓ РІРµСЂС‚РёРєР°Р»СЊРЅРѕРјСѓ РЅР°РїСЂСЏРјРєСѓ:
         glRotatef(90, 1, 0, 0);
         GLUquadricObj* quadricObj = gluNewQuadric();
         gluCylinder(quadricObj, getXSize() / 2, getXSize() / 2, getYSize(), 20, 2);
-        // Диск повинен бути намальований зовнішньою гранню догори:
+        // Р”РёСЃРє РїРѕРІРёРЅРµРЅ Р±СѓС‚Рё РЅР°РјР°Р»СЊРѕРІР°РЅРёР№ Р·РѕРІРЅС–С€РЅСЊРѕСЋ РіСЂР°РЅРЅСЋ РґРѕРіРѕСЂРё:
         glRotatef(180, 1, 0, 0);
-        // Малюємо диск зверху:
+        // РњР°Р»СЋС”РјРѕ РґРёСЃРє Р·РІРµСЂС…Сѓ:
         gluDisk(quadricObj, innerRadius, getXSize() / 2, 20, 20);
-        // Малюємо диск знизу:
+        // РњР°Р»СЋС”РјРѕ РґРёСЃРє Р·РЅРёР·Сѓ:
         glTranslatef(0, 0, -getYSize());
         gluDisk(quadricObj, innerRadius, getXSize() / 2, 20, 20);
         gluDeleteQuadric(quadricObj);
-        // Відновлення поточної матриці зі стека:
+        // Р’С–РґРЅРѕРІР»РµРЅРЅСЏ РїРѕС‚РѕС‡РЅРѕС— РјР°С‚СЂРёС†С– Р·С– СЃС‚РµРєР°:
         glPopMatrix();
     }
 
